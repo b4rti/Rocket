@@ -1,40 +1,40 @@
-use syn;
 use quote::ToTokens;
 use proc_macro2::TokenStream as TokenStream2;
-use derive_utils::{SpanWrapped, FromMeta, Result, ext::Split2};
+use derive_utils::{FromMeta, MetaItem, Result, ext::Split2};
 use rocket_http as http;
 
+#[derive(Debug)]
 pub struct ContentType(http::ContentType);
 
-pub struct Status(http::Status);
+#[derive(Debug)]
+pub struct Status(pub http::Status);
 
+#[derive(Debug)]
 struct MediaType(http::MediaType);
 
 impl FromMeta for Status {
-    fn from_meta(meta: &syn::Meta) -> Result<Self> {
-        let num = <SpanWrapped<usize>>::from_meta(meta)?;
-        if num.value < 100 || num.value >= 600 {
-            return Err(num.value_span.error("status must be in range [100, 600)"));
+    fn from_meta(meta: MetaItem) -> Result<Self> {
+        let num = usize::from_meta(meta)?;
+        if num < 100 || num >= 600 {
+            return Err(meta.value_span().error("status must be in range [100, 599]"));
         }
 
-        Ok(Status(http::Status::raw(num.value as u16)))
+        Ok(Status(http::Status::raw(num as u16)))
     }
 }
 
 impl ToTokens for Status {
     fn to_tokens(&self, tokens: &mut TokenStream2) {
         let (code, reason) = (self.0.code, self.0.reason);
-        tokens.extend(quote!(rocket::http::Status::new(#code, #reason)));
+        tokens.extend(quote!(rocket::http::Status { code: #code, reason: #reason }));
     }
 }
 
 impl FromMeta for ContentType {
-    fn from_meta(meta: &syn::Meta) -> Result<Self> {
-        let s = <SpanWrapped<String>>::from_meta(meta)?;
-        let parsed = http::ContentType::parse_flexible(&s.value)
-            .ok_or_else(|| s.value_span.error("invalid or unknown content-type"))?;
-
-        Ok(ContentType(parsed))
+    fn from_meta(meta: MetaItem) -> Result<Self> {
+        http::ContentType::parse_flexible(&String::from_meta(meta)?)
+            .map(ContentType)
+            .ok_or(meta.value_span().error("invalid or unknown content-type"))
     }
 }
 

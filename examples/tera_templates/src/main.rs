@@ -1,8 +1,8 @@
-#![feature(plugin, decl_macro)]
+#![feature(plugin, decl_macro, proc_macro_non_items)]
 #![plugin(rocket_codegen)]
 
 extern crate rocket_contrib;
-extern crate rocket;
+#[macro_use] extern crate rocket;
 extern crate serde_json;
 #[macro_use] extern crate serde_derive;
 
@@ -42,7 +42,7 @@ fn rocket() -> rocket::Rocket {
     rocket::ignite()
         .mount("/", routes![index, get])
         .attach(Template::fairing())
-        .catch(catchers![not_found])
+        .register(catchers![not_found])
 }
 
 fn main() {

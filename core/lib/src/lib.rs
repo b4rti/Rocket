@@ -67,10 +67,10 @@
 //! write Rocket applications. Here's a simple example to get you started:
 //!
 //! ```rust
-//! #![feature(plugin, decl_macro)]
+//! #![feature(plugin, decl_macro, proc_macro_non_items)]
 //! #![plugin(rocket_codegen)]
 //!
-//! extern crate rocket;
+//! #[macro_use] extern crate rocket;
 //!
 //! #[get("/")]
 //! fn hello() -> &'static str {
@@ -150,7 +150,6 @@ mod ext;
 #[doc(inline)] pub use outcome::Outcome;
 #[doc(inline)] pub use data::Data;
 #[doc(inline)] pub use config::Config;
-#[doc(inline)] pub use error::Error;
 pub use router::Route;
 pub use request::{Request, State};
 pub use catcher::Catcher;

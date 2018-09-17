@@ -1,15 +1,13 @@
-#![feature(plugin, decl_macro)]
+#![feature(plugin, decl_macro, proc_macro_non_items)]
 #![plugin(rocket_codegen)]
 
-extern crate rocket;
+#[macro_use] extern crate rocket;
 extern crate serde_json;
-#[macro_use]
-extern crate serde_derive;
+#[macro_use] extern crate serde_derive;
 
 #[cfg(test)] mod tests;
 
-use rocket::Request;
-use rocket::response::content;
+use rocket::{Request, response::content};
 
 #[derive(Debug, Serialize, Deserialize)]
 struct Person {
@@ -53,6 +51,6 @@ fn not_found(request: &Request) -> content::Html<String> {
 fn main() {
     rocket::ignite()
         .mount("/hello", routes![get_hello, post_hello])
-        .catch(catchers![not_found])
+        .register(catchers![not_found])
         .launch();
 }

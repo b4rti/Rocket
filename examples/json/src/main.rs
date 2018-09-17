@@ -1,14 +1,14 @@
-#![feature(plugin, decl_macro)]
+#![feature(plugin, decl_macro, proc_macro_non_items)]
 #![plugin(rocket_codegen)]
 
-extern crate rocket;
+#[macro_use] extern crate rocket;
 #[macro_use] extern crate rocket_contrib;
 #[macro_use] extern crate serde_derive;
 
 #[cfg(test)] mod tests;
 
-use rocket_contrib::{Json, JsonValue};
 use rocket::State;
+use rocket_contrib::{Json, JsonValue};
 use std::collections::HashMap;
 use std::sync::Mutex;
 
@@ -72,7 +72,7 @@ fn not_found() -> JsonValue {
 fn rocket() -> rocket::Rocket {
     rocket::ignite()
         .mount("/message", routes![new, update, get])
-        .catch(catchers![not_found])
+        .register(catchers![not_found])
         .manage(Mutex::new(HashMap::<ID, String>::new()))
 }
 

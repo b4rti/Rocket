@@ -19,7 +19,7 @@ use response::{Body, Response};
 use router::{Router, Route};
 use catcher::{self, Catcher};
 use outcome::Outcome;
-use error::{Error, LaunchError, LaunchErrorKind};
+use error::{LaunchError, LaunchErrorKind};
 use fairing::{Fairing, Fairings};
 
 use http::{Method, Status, Header};
@@ -320,12 +320,11 @@ impl Rocket {
         });
 
         // Dispatch to the user's catcher. If it fails, use the default 500.
-        let error = Error::NoRoute;
-        catcher.handle(error, req).unwrap_or_else(|err_status| {
+        catcher.handle(req).unwrap_or_else(|err_status| {
             error_!("Catcher failed with status: {}!", err_status);
             warn_!("Using default 500 error catcher.");
             let default = self.default_catchers.get(&500).expect("Default 500");
-            default.handle(error, req).expect("Default 500 response.")
+            default.handle(req).expect("Default 500 response.")
         })
     }
 
@@ -456,9 +455,9 @@ impl Rocket {
     /// dispatched to the `hi` route.
     ///
     /// ```rust
-    /// # #![feature(plugin, decl_macro)]
+    /// # #![feature(plugin, decl_macro, proc_macro_non_items)]
     /// # #![plugin(rocket_codegen)]
-    /// # extern crate rocket;
+    /// # #[macro_use] extern crate rocket;
     /// #
     /// #[get("/world")]
     /// fn hi() -> &'static str {
@@ -543,10 +542,10 @@ impl Rocket {
     /// # Examples
     ///
     /// ```rust
-    /// #![feature(plugin, decl_macro)]
+    /// #![feature(plugin, decl_macro, proc_macro_non_items)]
     /// #![plugin(rocket_codegen)]
     ///
-    /// extern crate rocket;
+    /// #[macro_use] extern crate rocket;
     ///
     /// use rocket::Request;
     ///
@@ -562,18 +561,18 @@ impl Rocket {
     ///
     /// fn main() {
     /// # if false { // We don't actually want to launch the server in an example.
-    ///     rocket::ignite().catch(catchers![internal_error, not_found])
+    ///     rocket::ignite()
+    ///         .register(catchers![internal_error, not_found])
     /// #       .launch();
     /// # }
     /// }
     /// ```
     #[inline]
-    pub fn catch(mut self, catchers: Vec<Catcher>) -> Self {
+    pub fn register(mut self, catchers: Vec<Catcher>) -> Self {
         info!("{}{}:", Paint::masked("👾  "), Paint::purple("Catchers"));
         for c in catchers {
-            if self.catchers.get(&c.code).map_or(false, |e| !e.is_default()) {
-                let msg = "(warning: duplicate catcher!)";
-                info_!("{} {}", c, Paint::yellow(msg));
+            if self.catchers.get(&c.code).map_or(false, |e| !e.is_default) {
+                info_!("{} {}", c, Paint::yellow("(warning: duplicate catcher!)"));
             } else {
                 info_!("{}", c);
             }
@@ -602,9 +601,9 @@ impl Rocket {
     /// # Example
     ///
     /// ```rust
-    /// # #![feature(plugin, decl_macro)]
+    /// # #![feature(plugin, decl_macro, proc_macro_non_items)]
     /// # #![plugin(rocket_codegen)]
-    /// # extern crate rocket;
+    /// # #[macro_use] extern crate rocket;
     /// use rocket::State;
     ///
     /// struct MyValue(usize);
@@ -757,9 +756,9 @@ impl Rocket {
     /// # Example
     ///
     /// ```rust
-    /// # #![feature(plugin, decl_macro)]
+    /// # #![feature(plugin, decl_macro, proc_macro_non_items)]
     /// # #![plugin(rocket_codegen)]
-    /// # extern crate rocket;
+    /// # #[macro_use] extern crate rocket;
     /// use rocket::Rocket;
     /// use rocket::fairing::AdHoc;
     ///
